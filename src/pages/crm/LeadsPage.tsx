@@ -174,7 +174,7 @@ export const LeadsPage: React.FC = () => {
 
       {/* KANBAN VIEW */}
       {viewMode === 'kanban' && (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 overflow-x-auto pb-4">
+        <div className="flex gap-4 overflow-x-auto pb-4 items-start">
           {STATUS_COLUMNS.map(status => {
             const columnLeads = filteredLeads.filter(l => l.status === status);
             const columnTotal = columnLeads.reduce((sum, l) => sum + (l.estimatedValue || 0), 0);
@@ -182,7 +182,7 @@ export const LeadsPage: React.FC = () => {
             return (
               <div
                 key={status}
-                className="bg-slate-50/70 dark:bg-slate-900/50 rounded-2xl p-3 border border-slate-200/60 dark:border-slate-800 flex flex-col min-w-[240px]"
+                className="bg-slate-50/70 dark:bg-slate-900/50 rounded-2xl p-3 border border-slate-200/60 dark:border-slate-800 flex flex-col w-[260px] shrink-0"
               >
                 {/* Column Header */}
                 <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200/80 dark:border-slate-800">

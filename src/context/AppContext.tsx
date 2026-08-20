@@ -59,6 +59,76 @@ export type CRMRoute =
   | 'public-about'
   | 'public-contact';
 
+export const ROUTE_PATH_MAP: Record<CRMRoute, string> = {
+  // CRM Routes
+  'dashboard': '/dashboard',
+  'leads': '/leads',
+  'customers': '/customers',
+  'quotations': '/quotations',
+  'jobs': '/jobs',
+  'dispatch': '/dispatch',
+  'technicians': '/technicians',
+  'amc': '/amc',
+  'amc-renewals': '/amc-renewals',
+  'payments': '/payments',
+  'reviews': '/reviews',
+  'automations': '/automations',
+  'whatsapp-bot': '/whatsapp-bot',
+  'tasks': '/tasks',
+  'notifications': '/notifications',
+  'analytics': '/analytics',
+  'settings': '/settings',
+
+  // Public Website Routes
+  'public-home': '/website',
+  'public-services': '/website/services',
+  'public-ac-repair': '/website/ac-repair',
+  'public-ac-installation': '/website/installation',
+  'public-amc': '/website/amc-plans',
+  'public-daikin': '/website/daikin',
+  'public-mitsubishi': '/website/mitsubishi',
+  'public-samsung': '/website/samsung',
+  'public-about': '/website/about',
+  'public-contact': '/website/contact',
+};
+
+export const pathToRoute = (pathname: string): CRMRoute => {
+  const cleanPath = pathname.toLowerCase().replace(/\/+$/, '') || '/';
+  
+  // Public Website Routes
+  if (cleanPath === '/' || cleanPath === '/website') return 'public-home';
+  if (cleanPath === '/website/services' || cleanPath === '/services') return 'public-services';
+  if (cleanPath === '/website/ac-repair' || cleanPath === '/ac-repair') return 'public-ac-repair';
+  if (cleanPath === '/website/installation' || cleanPath === '/installation') return 'public-ac-installation';
+  if (cleanPath === '/website/amc-plans' || cleanPath === '/website/amc' || cleanPath === '/amc-plans') return 'public-amc';
+  if (cleanPath === '/website/daikin' || cleanPath === '/daikin') return 'public-daikin';
+  if (cleanPath === '/website/mitsubishi' || cleanPath === '/mitsubishi') return 'public-mitsubishi';
+  if (cleanPath === '/website/samsung' || cleanPath === '/samsung') return 'public-samsung';
+  if (cleanPath === '/website/about' || cleanPath === '/about') return 'public-about';
+  if (cleanPath === '/website/contact' || cleanPath === '/contact') return 'public-contact';
+
+  // CRM Routes
+  if (cleanPath === '/dashboard' || cleanPath === '/crm' || cleanPath === '/crm/dashboard') return 'dashboard';
+  if (cleanPath === '/leads' || cleanPath === '/crm/leads') return 'leads';
+  if (cleanPath === '/customers' || cleanPath === '/crm/customers') return 'customers';
+  if (cleanPath === '/quotations' || cleanPath === '/crm/quotations') return 'quotations';
+  if (cleanPath === '/jobs' || cleanPath === '/crm/jobs') return 'jobs';
+  if (cleanPath === '/dispatch' || cleanPath === '/crm/dispatch') return 'dispatch';
+  if (cleanPath === '/technicians' || cleanPath === '/crm/technicians') return 'technicians';
+  if (cleanPath === '/amc' || cleanPath === '/crm/amc') return 'amc';
+  if (cleanPath === '/amc-renewals' || cleanPath === '/crm/amc-renewals') return 'amc-renewals';
+  if (cleanPath === '/payments' || cleanPath === '/crm/payments') return 'payments';
+  if (cleanPath === '/reviews' || cleanPath === '/crm/reviews') return 'reviews';
+  if (cleanPath === '/automations' || cleanPath === '/crm/automations') return 'automations';
+  if (cleanPath === '/whatsapp-bot' || cleanPath === '/crm/whatsapp-bot') return 'whatsapp-bot';
+  if (cleanPath === '/tasks' || cleanPath === '/crm/tasks') return 'tasks';
+  if (cleanPath === '/notifications' || cleanPath === '/crm/notifications') return 'notifications';
+  if (cleanPath === '/analytics' || cleanPath === '/crm/analytics') return 'analytics';
+  if (cleanPath === '/settings' || cleanPath === '/crm/settings') return 'settings';
+
+  return 'dashboard';
+};
+
 export interface ToastMessage {
   id: string;
   type: 'success' | 'error' | 'info' | 'warning';
@@ -75,6 +145,7 @@ export interface AppContextType {
 
   // Theme & Navigation
   theme: 'light' | 'dark';
+  setTheme: (theme: 'light' | 'dark') => void;
   toggleTheme: () => void;
   currentRoute: CRMRoute;
   setCurrentRoute: (route: CRMRoute) => void;
@@ -201,21 +272,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }, []);
 
   // Theme
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+  const [theme, setThemeState] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem(STORAGE_KEYS.THEME) as 'light' | 'dark') || 'light';
   });
 
+  const setTheme = (next: 'light' | 'dark') => {
+    setThemeState(next);
+    localStorage.setItem(STORAGE_KEYS.THEME, next);
+    if (next === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   const toggleTheme = () => {
-    setTheme(prev => {
-      const next = prev === 'light' ? 'dark' : 'light';
-      localStorage.setItem(STORAGE_KEYS.THEME, next);
-      if (next === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      return next;
-    });
+    setTheme(theme === 'light' ? 'dark' : 'light');
   };
 
   useEffect(() => {
@@ -273,16 +345,31 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     showToast('info', 'Logged Out', 'You have been signed out.');
   };
 
-  // Routing
-  const [currentRoute, setCurrentRouteState] = useState<CRMRoute>('dashboard');
+  // Routing with URL synchronization
+  const [currentRoute, setCurrentRouteState] = useState<CRMRoute>(() => {
+    return pathToRoute(window.location.pathname);
+  });
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [selectedQuotationId, setSelectedQuotationId] = useState<string | null>(null);
   const [selectedAmcId, setSelectedAmcId] = useState<string | null>(null);
 
+  // Sync state on browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentRouteState(pathToRoute(window.location.pathname));
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const setCurrentRoute = (route: CRMRoute) => {
     setCurrentRouteState(route);
+    const targetPath = ROUTE_PATH_MAP[route] || '/';
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({ route }, '', targetPath);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -1491,6 +1578,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         login,
         logout,
         theme,
+        setTheme,
         toggleTheme,
         currentRoute,
         setCurrentRoute,

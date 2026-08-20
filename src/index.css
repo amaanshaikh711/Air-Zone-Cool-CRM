@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Light mode base defaults */
+html {
+  background-color: #f8fafc; /* slate-50 */
+  color: #1e293b; /* slate-800 */
+}
+
+html.dark {
+  background-color: #0f172a; /* slate-900 */
+  color: #e2e8f0; /* slate-200 */
+}
