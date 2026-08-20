@@ -2,13 +2,77 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Light mode base defaults */
+/* Light / Dark Mode Root Defaults */
 html {
   background-color: #f8fafc; /* slate-50 */
   color: #1e293b; /* slate-800 */
+  scroll-behavior: smooth;
+  color-scheme: light;
 }
 
 html.dark {
-  background-color: #0f172a; /* slate-900 */
-  color: #e2e8f0; /* slate-200 */
+  background-color: #0b1120; /* deep slate-950 */
+  color: #f1f5f9; /* slate-100 */
+  color-scheme: dark;
+}
+
+/* Ultra-smooth Theme Shift Across All Components */
+html,
+body,
+header,
+nav,
+aside,
+main,
+footer,
+section,
+article,
+div,
+button,
+input,
+select,
+textarea,
+table,
+tr,
+td,
+th,
+span,
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+svg {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 380ms;
+}
+
+/* Custom scrollbar styling that smoothly respects theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+  transition: background 300ms ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.7);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.5);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.8);
 }
