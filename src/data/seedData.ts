@@ -1962,10 +1962,13 @@ export const SEED_PRICING_MATRIX: PricingMatrixItem[] = [
 /**
  * Initializes the entire database with realistic seeds if not present
  */
-export function initializeDatabase(force: boolean = false): void {
+export function initializeDatabase(force: boolean = false): boolean {
   const existingCustomers = LocalStorageService.getCollection<Customer>(STORAGE_KEYS.CUSTOMERS);
-  if (!force && existingCustomers.length > 0) {
-    return; // Already initialized
+  const existingJobs = LocalStorageService.getCollection<Job>(STORAGE_KEYS.JOBS);
+  const existingLeads = LocalStorageService.getCollection<Lead>(STORAGE_KEYS.LEADS);
+
+  if (!force && existingCustomers.length > 0 && existingJobs.length > 0 && existingLeads.length > 0) {
+    return false; // Already initialized
   }
 
   LocalStorageService.replaceCollection(STORAGE_KEYS.CUSTOMERS, SEED_CUSTOMERS);
@@ -1999,4 +2002,6 @@ export function initializeDatabase(force: boolean = false): void {
       },
     });
   }
+
+  return true;
 }

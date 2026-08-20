@@ -28,7 +28,24 @@ import {
   ServiceType,
 } from '../types';
 import { STORAGE_KEYS, LocalStorageService } from '../services/storage/localStorageService';
-import { initializeDatabase, SEED_SETTINGS } from '../data/seedData';
+import {
+  initializeDatabase,
+  SEED_SETTINGS,
+  SEED_CUSTOMERS,
+  SEED_LEADS,
+  SEED_QUOTATIONS,
+  SEED_JOBS,
+  SEED_TECHNICIANS,
+  SEED_AMCS,
+  SEED_AMC_VISITS,
+  SEED_PAYMENTS,
+  SEED_REVIEWS,
+  SEED_AUTOMATIONS,
+  SEED_TASKS,
+  SEED_ACTIVITIES,
+  SEED_NOTIFICATIONS,
+  SEED_SERVICES,
+} from '../data/seedData';
 
 export type CRMRoute = 
   | 'dashboard'
@@ -266,10 +283,34 @@ export interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Initialize Database on boot
-  useEffect(() => {
-    initializeDatabase();
+  // Ensure Database is initialized on boot
+  initializeDatabase();
+
+  // Reload helper
+  const reloadState = useCallback(() => {
+    setCustomers(LocalStorageService.getCollection<Customer>(STORAGE_KEYS.CUSTOMERS) || SEED_CUSTOMERS);
+    setLeads(LocalStorageService.getCollection<Lead>(STORAGE_KEYS.LEADS) || SEED_LEADS);
+    setQuotations(LocalStorageService.getCollection<Quotation>(STORAGE_KEYS.QUOTES) || SEED_QUOTATIONS);
+    setJobs(LocalStorageService.getCollection<Job>(STORAGE_KEYS.JOBS) || SEED_JOBS);
+    setTechnicians(LocalStorageService.getCollection<Technician>(STORAGE_KEYS.TECHNICIANS) || SEED_TECHNICIANS);
+    setAmcs(LocalStorageService.getCollection<AMCContract>(STORAGE_KEYS.AMCS) || SEED_AMCS);
+    setAmcVisits(LocalStorageService.getCollection<AMCVisit>(STORAGE_KEYS.AMC_VISITS) || SEED_AMC_VISITS);
+    setPayments(LocalStorageService.getCollection<Payment>(STORAGE_KEYS.PAYMENTS) || SEED_PAYMENTS);
+    setReviews(LocalStorageService.getCollection<Review>(STORAGE_KEYS.REVIEWS) || SEED_REVIEWS);
+    setAutomations(LocalStorageService.getCollection<AutomationRule>(STORAGE_KEYS.AUTOMATIONS) || SEED_AUTOMATIONS);
+    setNotifications(LocalStorageService.getCollection<Notification>(STORAGE_KEYS.NOTIFICATIONS) || SEED_NOTIFICATIONS);
+    setActivities(LocalStorageService.getCollection<Activity>(STORAGE_KEYS.ACTIVITIES) || SEED_ACTIVITIES);
+    setTasks(LocalStorageService.getCollection<Task>(STORAGE_KEYS.TASKS) || SEED_TASKS);
+    setServices(LocalStorageService.getCollection<ServiceCatalogItem>(STORAGE_KEYS.SERVICES) || SEED_SERVICES);
+    setSettings(LocalStorageService.getObject<CompanySettings>(STORAGE_KEYS.SETTINGS, SEED_SETTINGS) || SEED_SETTINGS);
   }, []);
+
+  useEffect(() => {
+    const wasSeeded = initializeDatabase();
+    if (wasSeeded) {
+      reloadState();
+    }
+  }, [reloadState]);
 
   // Theme
   const [theme, setThemeState] = useState<'light' | 'dark'>(() => {
@@ -397,41 +438,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setToasts(prev => prev.filter(t => t.id !== id));
   };
 
-  // Collections State
-  const [customers, setCustomers] = useState<Customer[]>(() => LocalStorageService.getCollection<Customer>(STORAGE_KEYS.CUSTOMERS));
-  const [leads, setLeads] = useState<Lead[]>(() => LocalStorageService.getCollection<Lead>(STORAGE_KEYS.LEADS));
-  const [quotations, setQuotations] = useState<Quotation[]>(() => LocalStorageService.getCollection<Quotation>(STORAGE_KEYS.QUOTES));
-  const [jobs, setJobs] = useState<Job[]>(() => LocalStorageService.getCollection<Job>(STORAGE_KEYS.JOBS));
-  const [technicians, setTechnicians] = useState<Technician[]>(() => LocalStorageService.getCollection<Technician>(STORAGE_KEYS.TECHNICIANS));
-  const [amcs, setAmcs] = useState<AMCContract[]>(() => LocalStorageService.getCollection<AMCContract>(STORAGE_KEYS.AMCS));
-  const [amcVisits, setAmcVisits] = useState<AMCVisit[]>(() => LocalStorageService.getCollection<AMCVisit>(STORAGE_KEYS.AMC_VISITS));
-  const [payments, setPayments] = useState<Payment[]>(() => LocalStorageService.getCollection<Payment>(STORAGE_KEYS.PAYMENTS));
-  const [reviews, setReviews] = useState<Review[]>(() => LocalStorageService.getCollection<Review>(STORAGE_KEYS.REVIEWS));
-  const [automations, setAutomations] = useState<AutomationRule[]>(() => LocalStorageService.getCollection<AutomationRule>(STORAGE_KEYS.AUTOMATIONS));
-  const [notifications, setNotifications] = useState<Notification[]>(() => LocalStorageService.getCollection<Notification>(STORAGE_KEYS.NOTIFICATIONS));
-  const [activities, setActivities] = useState<Activity[]>(() => LocalStorageService.getCollection<Activity>(STORAGE_KEYS.ACTIVITIES));
-  const [tasks, setTasks] = useState<Task[]>(() => LocalStorageService.getCollection<Task>(STORAGE_KEYS.TASKS));
-  const [services, setServices] = useState<ServiceCatalogItem[]>(() => LocalStorageService.getCollection<ServiceCatalogItem>(STORAGE_KEYS.SERVICES));
-  const [settings, setSettings] = useState<CompanySettings>(() => LocalStorageService.getObject<CompanySettings>(STORAGE_KEYS.SETTINGS, SEED_SETTINGS));
+  // Helper to safely load collection with seed fallback
+  const getInitialCollection = <T,>(key: string, seed: T[]): T[] => {
+    const list = LocalStorageService.getCollection<T>(key);
+    return list && list.length > 0 ? list : seed;
+  };
 
-  // Reload helper
-  const reloadState = useCallback(() => {
-    setCustomers(LocalStorageService.getCollection<Customer>(STORAGE_KEYS.CUSTOMERS));
-    setLeads(LocalStorageService.getCollection<Lead>(STORAGE_KEYS.LEADS));
-    setQuotations(LocalStorageService.getCollection<Quotation>(STORAGE_KEYS.QUOTES));
-    setJobs(LocalStorageService.getCollection<Job>(STORAGE_KEYS.JOBS));
-    setTechnicians(LocalStorageService.getCollection<Technician>(STORAGE_KEYS.TECHNICIANS));
-    setAmcs(LocalStorageService.getCollection<AMCContract>(STORAGE_KEYS.AMCS));
-    setAmcVisits(LocalStorageService.getCollection<AMCVisit>(STORAGE_KEYS.AMC_VISITS));
-    setPayments(LocalStorageService.getCollection<Payment>(STORAGE_KEYS.PAYMENTS));
-    setReviews(LocalStorageService.getCollection<Review>(STORAGE_KEYS.REVIEWS));
-    setAutomations(LocalStorageService.getCollection<AutomationRule>(STORAGE_KEYS.AUTOMATIONS));
-    setNotifications(LocalStorageService.getCollection<Notification>(STORAGE_KEYS.NOTIFICATIONS));
-    setActivities(LocalStorageService.getCollection<Activity>(STORAGE_KEYS.ACTIVITIES));
-    setTasks(LocalStorageService.getCollection<Task>(STORAGE_KEYS.TASKS));
-    setServices(LocalStorageService.getCollection<ServiceCatalogItem>(STORAGE_KEYS.SERVICES));
-    setSettings(LocalStorageService.getObject<CompanySettings>(STORAGE_KEYS.SETTINGS, SEED_SETTINGS));
-  }, []);
+  // Collections State - Guaranteed immediate data fallback
+  const [customers, setCustomers] = useState<Customer[]>(() => getInitialCollection<Customer>(STORAGE_KEYS.CUSTOMERS, SEED_CUSTOMERS));
+  const [leads, setLeads] = useState<Lead[]>(() => getInitialCollection<Lead>(STORAGE_KEYS.LEADS, SEED_LEADS));
+  const [quotations, setQuotations] = useState<Quotation[]>(() => getInitialCollection<Quotation>(STORAGE_KEYS.QUOTES, SEED_QUOTATIONS));
+  const [jobs, setJobs] = useState<Job[]>(() => getInitialCollection<Job>(STORAGE_KEYS.JOBS, SEED_JOBS));
+  const [technicians, setTechnicians] = useState<Technician[]>(() => getInitialCollection<Technician>(STORAGE_KEYS.TECHNICIANS, SEED_TECHNICIANS));
+  const [amcs, setAmcs] = useState<AMCContract[]>(() => getInitialCollection<AMCContract>(STORAGE_KEYS.AMCS, SEED_AMCS));
+  const [amcVisits, setAmcVisits] = useState<AMCVisit[]>(() => getInitialCollection<AMCVisit>(STORAGE_KEYS.AMC_VISITS, SEED_AMC_VISITS));
+  const [payments, setPayments] = useState<Payment[]>(() => getInitialCollection<Payment>(STORAGE_KEYS.PAYMENTS, SEED_PAYMENTS));
+  const [reviews, setReviews] = useState<Review[]>(() => getInitialCollection<Review>(STORAGE_KEYS.REVIEWS, SEED_REVIEWS));
+  const [automations, setAutomations] = useState<AutomationRule[]>(() => getInitialCollection<AutomationRule>(STORAGE_KEYS.AUTOMATIONS, SEED_AUTOMATIONS));
+  const [notifications, setNotifications] = useState<Notification[]>(() => getInitialCollection<Notification>(STORAGE_KEYS.NOTIFICATIONS, SEED_NOTIFICATIONS));
+  const [activities, setActivities] = useState<Activity[]>(() => getInitialCollection<Activity>(STORAGE_KEYS.ACTIVITIES, SEED_ACTIVITIES));
+  const [tasks, setTasks] = useState<Task[]>(() => getInitialCollection<Task>(STORAGE_KEYS.TASKS, SEED_TASKS));
+  const [services, setServices] = useState<ServiceCatalogItem[]>(() => getInitialCollection<ServiceCatalogItem>(STORAGE_KEYS.SERVICES, SEED_SERVICES));
+  const [settings, setSettings] = useState<CompanySettings>(() => LocalStorageService.getObject<CompanySettings>(STORAGE_KEYS.SETTINGS, SEED_SETTINGS) || SEED_SETTINGS);
 
   // Keyboard shortcut for Cmd/Ctrl + K (Command Palette)
   useEffect(() => {
