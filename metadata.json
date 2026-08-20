@@ -1,0 +1,6 @@
+{
+  "name": "Air Zone Cool CRM",
+  "description": "HVAC CRM & Field Service Management Platform for Daikin, Mitsubishi, Samsung certified AC servicing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
